@@ -1,0 +1,54 @@
+# Maintainer: Charles Bos <charlesbos1 AT gmail>
+# Contributor: Xiao-Long Chen <chenxiaolong@cxl.epac.to>
+# Contributor: György Balló <ballogy@freestart.hu>
+# Contributor: thn81 <root@scrat>
+
+pkgname=unity-lens-music
+_actual_ver=6.9.0
+_extra_ver=+13.10.20131011
+_source_date=20131011
+_translations=20130418
+pkgver=${_actual_ver}.${_source_date}
+pkgrel=2
+pkgdesc="Music, in the dash"
+arch=('i686' 'x86_64')
+url="https://launchpad.net/unity-place-music"
+license=('GPL')
+depends=('libunity' 'gstreamer' 'gst-plugins-base' 'libnotify' 'liboauth' 'libsoup' 'tdb')
+makedepends=('vala' 'intltool')
+groups=('unity')
+source=("https://launchpad.net/ubuntu/+archive/primary/+files/unity-lens-music_${_actual_ver}${_extra_ver}.orig.tar.gz"
+        "https://dl.dropboxusercontent.com/u/486665/Translations/translations-${_translations}-unity-lens-music.tar.gz")
+sha512sums=('3f4479c05655220dc952c58c5b9183d83d144c4b9a72f52de43b6a6d02429fb83b42865a3502b133d5b5f65470cc26744a3a27c6d4c7d29c68f0166caefaee4b'
+            'e41c9acd6b573fa03e06a447a7692e9b82f76d810d887c9cbcf364912dfe34f41e9741b77c19026357522365361b402958bb86784b40f1b5dd3f061737964ec9')
+
+prepare() {
+  cd "${srcdir}/${pkgname}-${_actual_ver}${_extra_ver}"
+
+  msg "Merging translations from ${_translations}"
+  rm -f po/LINGUAS po/*.pot
+  mv "${srcdir}"/po/*.pot po/
+  for i in "${srcdir}"/po/*.po; do
+    FILE=$(sed -n "s|.*/${pkgname}-||p" <<< ${i})
+    mv ${i} po/${FILE}
+    echo ${FILE%.*} >> po/LINGUAS
+  done
+}
+
+build() {
+  cd "${srcdir}/${pkgname}-${_actual_ver}${_extra_ver}"
+
+  aclocal --install --force
+  autoreconf -vfi
+  intltoolize -f
+  ./configure --prefix=/usr --libexecdir=/usr/lib/${pkgname} --disable-static
+  make
+}
+
+package() {
+  cd "${srcdir}/${pkgname}-${_actual_ver}${_extra_ver}"
+
+  make DESTDIR="${pkgdir}/" install
+}
+
+# vim:set ts=2 sw=2 et:
